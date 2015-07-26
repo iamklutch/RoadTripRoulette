@@ -1,5 +1,8 @@
 package com.yukidev.roadtriproulette;
 
+import android.content.Context;
+import android.location.Location;
+import android.location.LocationManager;
 import android.os.*;
 import android.os.Process;
 import android.support.v7.app.ActionBarActivity;
@@ -11,14 +14,20 @@ public class MainActivity extends ActionBarActivity {
 
     private double longitude;
     private double latitude;
+    private String cityName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
-
+//        LocationManager locationManager = (LocationManager)
+//                this.getSystemService(Context.LOCATION_SERVICE);
+//
+//        String locationProvider = LocationManager.NETWORK_PROVIDER;
+//        Location lastKnownLocation = locationManager.getLastKnownLocation(locationProvider);
+//        longitude = lastKnownLocation.getLongitude();
+//        latitude = lastKnownLocation.getLatitude();
 
         Thread yelp = new Thread(new Runnable() {
             @Override
@@ -26,8 +35,8 @@ public class MainActivity extends ActionBarActivity {
                 String[] args = new String[4];
                 args[0] = "--term";
                 args[1] = "tacos";
-                args[2] = "--location";
-                args[3] = "Dallas";
+                args[2] = "--ll";
+                args[3] = "41.2156 , -111.97";
 
                 YelpAPI.main(args);
             }

@@ -34,7 +34,8 @@ public class YelpAPI {
     private static final String API_HOST = "api.yelp.com";
     private static final String DEFAULT_TERM = "dinner";
     private static final String DEFAULT_LOCATION = "San Francisco, CA";
-    private static final int SEARCH_LIMIT = 3;
+    private static final String DEFAULT_LATLONG = "41.2153, -111.97";
+    private static final int SEARCH_LIMIT = 20;
     private static final String SEARCH_PATH = "/v2/search";
     private static final String BUSINESS_PATH = "/v2/business";
 
@@ -81,7 +82,8 @@ public class YelpAPI {
     public String searchForBusinessesByLocation(String term, String location) {
         OAuthRequest request = createOAuthRequest(SEARCH_PATH);
         request.addQuerystringParameter("term", term);
-        request.addQuerystringParameter("location", location);
+//       request.addQuerystringParameter("location", location);
+        request.addQuerystringParameter("ll", location);
         request.addQuerystringParameter("limit", String.valueOf(SEARCH_LIMIT));
         return sendRequestAndGetResponse(request);
     }
@@ -133,7 +135,7 @@ public class YelpAPI {
      */
     private static void queryAPI(YelpAPI yelpApi, YelpAPICLI yelpApiCli) {
         String searchResponseJSON =
-                yelpApi.searchForBusinessesByLocation(yelpApiCli.term, yelpApiCli.location);
+                yelpApi.searchForBusinessesByLocation(yelpApiCli.term, yelpApiCli.latlong);
 
         JSONParser parser = new JSONParser();
         JSONObject response = null;
@@ -167,6 +169,10 @@ public class YelpAPI {
 
         @Parameter(names = {"-l", "--location"}, description = "Location to be Queried")
         public String location = DEFAULT_LOCATION;
+
+        @Parameter(names = {"-L", "--ll"}, description = "Location Lat Long")
+        public String latlong = DEFAULT_LATLONG;
+
     }
 
     /**
