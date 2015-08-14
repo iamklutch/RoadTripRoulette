@@ -1,13 +1,10 @@
 package com.yukidev.roadtriproulette;
 
 import android.content.Context;
-import android.content.DialogInterface;
 import android.location.Location;
-import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.*;
-import android.os.Process;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -28,7 +25,9 @@ import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Response;
 
+import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.text.DecimalFormat;
@@ -47,7 +46,9 @@ public class MainActivity extends ActionBarActivity implements
     private double mLatitude;
     private double mDesiredDistance;
     private String mDesiredDirection;
-    private String cityName;
+
+    private GeoNameData mGeoNameData;
+
     private Location lastKnownLocation;
     private GoogleApiClient mGoogleApiClient;
     private LocationRequest mLocationRequest;
@@ -84,7 +85,8 @@ public class MainActivity extends ActionBarActivity implements
 
                     OkHttpClient client = new OkHttpClient();
                     Request request = new Request.Builder()
-                            .url(getDirectionUrl(mLatitude,mLongitude,mDesiredDirection))
+//                            .url(getDirectionUrl(mLatitude,mLongitude,mDesiredDirection))
+                            .url(getDirectionUrl(40.7657,-111.901,mDesiredDirection))
                             .build();
                     Call call = client.newCall(request);
                     call.enqueue(new Callback() {
@@ -111,7 +113,7 @@ public class MainActivity extends ActionBarActivity implements
                             try {
                                 String jsonData = response.body().string();
                                 if (response.isSuccessful()) {
-//                                    mForecast = parseForecastDetails(jsonData);
+                                    mGeoNameData = parsePlaceDetails(jsonData);
                                     // runOnUiThread allows the data on the background thread go to the Main UI thread.
                                     runOnUiThread(new Runnable() {
                                         @Override
@@ -128,9 +130,9 @@ public class MainActivity extends ActionBarActivity implements
                             catch (IOException e) {
                                 Log.e(TAG, "Exception caught: ", e);
                             }
-//                            catch (JSONException e){
-//                                Log.e(TAG, "Exception caught: ", e);
-//                            }
+                            catch (JSONException e){
+                                Log.e(TAG, "Exception caught: ", e);
+                            }
                         }
                     });
 
@@ -283,5 +285,34 @@ public class MainActivity extends ActionBarActivity implements
             isAvailable = true;
         }
         return isAvailable;
+    }
+
+    private GeoNameData parsePlaceDetails (String jsonData) throws JSONException{
+        GeoNameData geoNameData = new GeoNameData();
+
+        geoNameData.setCities(getCities(jsonData));
+
+        return geoNameData;
+    }
+
+    private Cities[] getCities(String jsonData) throws JSONException {
+        JSONObject cities = new JSONObject(jsonData);
+        JSONArray data = cities.getJSONArray("geonames");
+
+        Cities[] city = new Cities[data.length()];
+        for (int i = 0; i < data.length(); i++) {
+            JSONObject jsonCity = data.getJSONObject(i);
+            Cities cityInfo = new Cities();
+
+            cityInfo.setName(jsonCity.getString("name"));
+            cityInfo.setLat(jsonCity.getDouble("lat"));
+            cityInfo.setLng(jsonCity.getDouble("lng"));
+            cityInfo.setDistance(jsonCity.getDouble("distance"));
+
+            city[i] = cityInfo;
+        }
+
+        return city;
+
     }
 }
