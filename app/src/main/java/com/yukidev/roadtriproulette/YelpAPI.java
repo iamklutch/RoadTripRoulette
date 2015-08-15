@@ -1,5 +1,8 @@
 package com.yukidev.roadtriproulette;
 
+import android.content.Context;
+import android.content.Intent;
+
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -13,6 +16,8 @@ import org.scribe.oauth.OAuthService;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
+
+import java.util.Random;
 
 /**
  * Code sample for accessing the Yelp API V2.
@@ -48,6 +53,7 @@ public class YelpAPI {
     private static final String TOKEN = "nRO4PNuOQ4GpsbUFNG7FifdqExsOJ6CD";
     private static final String TOKEN_SECRET = "HXCqjmPCa334sO64znA7AaFxaRw";
 
+    Context mContext;
     OAuthService service;
     Token accessToken;
 
@@ -61,12 +67,16 @@ public class YelpAPI {
      @Parameter tokenSecret HXCqjmPCa334sO64znA7AaFxaRw
      */
 
-    public YelpAPI(String consumerKey, String consumerSecret, String token, String tokenSecret) {
+    public YelpAPI(String consumerKey, String consumerSecret, String token, String tokenSecret, Context context) {
+
+        mContext = context;
 
         this.service =
                 new ServiceBuilder().provider(TwoStepOAuth.class).apiKey(consumerKey)
                         .apiSecret(consumerSecret).build();
         this.accessToken = new Token(token, tokenSecret);
+
+
     }
 
     /**
@@ -133,7 +143,7 @@ public class YelpAPI {
      * @param yelpApi <tt>YelpAPI</tt> service instance
      * @param yelpApiCli <tt>YelpAPICLI</tt> command line arguments
      */
-    private static void queryAPI(YelpAPI yelpApi, YelpAPICLI yelpApiCli) {
+    private static void queryAPI(YelpAPI yelpApi, YelpAPICLI yelpApiCli, Context context) {
         String searchResponseJSON =
                 yelpApi.searchForBusinessesByLocation(yelpApiCli.term, yelpApiCli.latlong);
 
@@ -148,16 +158,36 @@ public class YelpAPI {
         }
 
         JSONArray businesses = (JSONArray) response.get("businesses");
-        JSONObject firstBusiness = (JSONObject) businesses.get(0);
-        String firstBusinessID = firstBusiness.get("id").toString();
-        System.out.println(String.format(
-                "%s businesses found, querying business info for the top result \"%s\" ...",
-                businesses.size(), firstBusinessID));
+        Random random = new Random();
+        int i = random.nextInt(businesses.size());
+        JSONObject randomBusiness = (JSONObject) businesses.get(i);
+        String businessName = randomBusiness.get("name").toString();
+        String businessImgUrl = "";
+//        if (randomBusiness.get("image_url").toString().equals(null)){
+//            businessImgUrl = "No image available";
+//        }else {
+//            businessImgUrl = randomBusiness.get("image_url").toString();
+//        }
+        JSONObject location = (JSONObject) randomBusiness.get("location");
+        JSONObject coordinates = (JSONObject) location.get("coordinate");
+        double businessLat = Double.parseDouble(coordinates.get("latitude").toString());
+        double businessLng = Double.parseDouble(coordinates.get("longitude").toString());
 
-        // Select the first business and display business details
-        String businessResponseJSON = yelpApi.searchByBusinessId(firstBusinessID.toString());
-        System.out.println(String.format("Result for business \"%s\" found:", firstBusinessID));
-        System.out.println(businessResponseJSON);
+        Intent intent = new Intent(context, ResultActivity.class);
+        intent.putExtra("lat", businessLat);
+        intent.putExtra("lng", businessLng);
+        intent.putExtra("name", businessName);
+        intent.putExtra("imageUrl", businessImgUrl);
+        context.startActivity(intent);
+
+
+//        System.out.println(String.format(
+//                "%s businesses found, querying business info for the top result \"%s\" ...",
+//                businesses.size(), businessName));
+//        // Select the first business and display business details
+//        String businessResponseJSON = yelpApi.searchByBusinessId(businessName.toString());
+//        System.out.println(String.format("Result for business \"%s\" found:", businessName));
+//        System.out.println(businessResponseJSON);
     }
 
     /**
@@ -180,11 +210,11 @@ public class YelpAPI {
      * <p>
      * After entering your OAuth credentials, execute <tt><b>run.sh</b></tt> to run this example.
      */
-    public static void main(String[] args) {
+    public static void main(String[] args, Context context) {
         YelpAPICLI yelpApiCli = new YelpAPICLI();
         new JCommander(yelpApiCli, args);
 
-        YelpAPI yelpApi = new YelpAPI(CONSUMER_KEY, CONSUMER_SECRET, TOKEN, TOKEN_SECRET);
-        queryAPI(yelpApi, yelpApiCli);
+        YelpAPI yelpApi = new YelpAPI(CONSUMER_KEY, CONSUMER_SECRET, TOKEN, TOKEN_SECRET, context);
+        queryAPI(yelpApi, yelpApiCli, context);
     }
 }

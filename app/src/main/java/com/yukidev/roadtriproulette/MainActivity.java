@@ -12,6 +12,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -28,9 +29,11 @@ import com.squareup.okhttp.Response;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.w3c.dom.Text;
 
 import java.io.IOException;
 import java.text.DecimalFormat;
+import java.util.Random;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -46,6 +49,7 @@ public class MainActivity extends ActionBarActivity implements
     private double mLatitude;
     private double mDesiredDistance;
     private String mDesiredDirection;
+    Context mContext;
 
     private GeoNameData mGeoNameData;
 
@@ -53,13 +57,18 @@ public class MainActivity extends ActionBarActivity implements
     private GoogleApiClient mGoogleApiClient;
     private LocationRequest mLocationRequest;
     @Bind (R.id.cityEditText) EditText mLocationEditText;
+    @Bind (R.id.latTextView) TextView MLatDisplay;
+    @Bind (R.id.lngTextView) TextView MLngDisplay;
     @Bind (R.id.letsGoImageButton)ImageButton mLetsGoButton;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
+
+        mContext = this;
 
         mLocationEditText = (EditText)findViewById(R.id.cityEditText);
 
@@ -78,7 +87,7 @@ public class MainActivity extends ActionBarActivity implements
         mLetsGoButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mDesiredDistance = milesToLatLng(25);
+                mDesiredDistance = milesToLatLng(10);
                 mDesiredDirection = "N";
 
                 if (isNetworkAvailable()) {
@@ -86,7 +95,7 @@ public class MainActivity extends ActionBarActivity implements
                     OkHttpClient client = new OkHttpClient();
                     Request request = new Request.Builder()
 //                            .url(getDirectionUrl(mLatitude,mLongitude,mDesiredDirection))
-                            .url(getDirectionUrl(40.7657,-111.901,mDesiredDirection))
+                            .url(getDirectionUrl(49.5197,7.6808 , mDesiredDirection))
                             .build();
                     Call call = client.newCall(request);
                     call.enqueue(new Callback() {
@@ -118,7 +127,31 @@ public class MainActivity extends ActionBarActivity implements
                                     runOnUiThread(new Runnable() {
                                         @Override
                                         public void run() {
-                                            // if it worked, this is were you do your shit
+                                            Cities[] cities = mGeoNameData.getCities();
+
+                                            Random random = new Random();
+                                            int i = random.nextInt(cities.length);
+
+//                                            final Double yelpLat = cities[i].getLat();
+//                                            final Double yelpLng = cities[i].getLng();
+
+                                            final Double yelpLat = 49.5197 + mDesiredDistance;
+                                            final Double yelpLng = 7.6808  - mDesiredDistance;
+
+                                            Thread yelp = new Thread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                String[] args = new String[4];
+                                                args[0] = "--term";
+                                                args[1] = "dinner";
+                                                args[2] = "--ll";
+                                                args[3] = yelpLat + " , " + yelpLng;
+
+                                                YelpAPI.main(args, mContext);
+                                            }
+                                        });
+
+                                        yelp.start();
                                         }
                                     });
 
@@ -141,22 +174,6 @@ public class MainActivity extends ActionBarActivity implements
                     Toast.makeText(MainActivity.this, getString(R.string.network_unavailable),
                             Toast.LENGTH_LONG).show();
                 }
-
-
-//                Thread yelp = new Thread(new Runnable() {
-//                    @Override
-//                    public void run() {
-//                        String[] args = new String[4];
-//                        args[0] = "--term";
-//                        args[1] = "tacos";
-//                        args[2] = "--ll";
-//                        args[3] = mLatitude + " , " + mLongitude;
-//
-//                        YelpAPI.main(args);
-//                    }
-//                });
-//
-//                yelp.start();
             }
         });
 
@@ -261,7 +278,7 @@ public class MainActivity extends ActionBarActivity implements
         }
 
         directionURL = "http://api.geonames.org/findNearbyPlaceNameJSON?lat=" + newLat +
-                "&lng=" + newLng + "&username=yukidev&style=MEDIUM&cities=cities15000&radius=300";
+                "&lng=" + newLng + "&username=yukidev&style=MEDIUM&cities=cities1000&radius=100";
 
         return directionURL;
     }
