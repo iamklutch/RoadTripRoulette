@@ -12,7 +12,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.TextView;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -29,9 +29,9 @@ import com.squareup.okhttp.Response;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.w3c.dom.Text;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.text.DecimalFormat;
 import java.util.Random;
 
@@ -45,8 +45,10 @@ public class MainActivity extends ActionBarActivity implements
 
     public static final String TAG = MainActivity.class.getSimpleName();
 
-    private double mLongitude;
-    private double mLatitude;
+    private double mCurrentLongitude;
+    private double mCurrentLatitude;
+    private double mYelpLat;
+    private double mYelpLng;
     private double mDesiredDistance;
     private String mDesiredDirection;
     Context mContext;
@@ -56,10 +58,10 @@ public class MainActivity extends ActionBarActivity implements
     private Location lastKnownLocation;
     private GoogleApiClient mGoogleApiClient;
     private LocationRequest mLocationRequest;
-    @Bind (R.id.cityEditText) EditText mLocationEditText;
-    @Bind (R.id.latTextView) TextView MLatDisplay;
-    @Bind (R.id.lngTextView) TextView MLngDisplay;
+    @Bind (R.id.searchTermEditText)EditText mSearchTermEditText;
     @Bind (R.id.letsGoImageButton)ImageButton mLetsGoButton;
+    @Bind (R.id.directionSpinner)Spinner mDirectionSpinner;
+    @Bind (R.id.distanceEditText)EditText mDistanceEditText;
 
 
     @Override
@@ -69,8 +71,6 @@ public class MainActivity extends ActionBarActivity implements
         ButterKnife.bind(this);
 
         mContext = this;
-
-        mLocationEditText = (EditText)findViewById(R.id.cityEditText);
 
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
@@ -87,15 +87,31 @@ public class MainActivity extends ActionBarActivity implements
         mLetsGoButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mDesiredDistance = milesToLatLng(10);
-                mDesiredDirection = "N";
+
+                if (Integer.parseInt(mDistanceEditText.getText().toString()) == 0){
+                    Random distRandom = new Random();
+                    int dist = (distRandom.nextInt(90) + 10);
+                    mDesiredDistance = milesToLatLng(dist);
+                } else {
+                    int distance = Integer.parseInt(mDistanceEditText.getText().toString());
+                    mDesiredDistance = milesToLatLng(distance);
+                }
+
+                if (mDirectionSpinner.getSelectedItemPosition() == 0){
+                    Random dirRandom = new Random();
+
+                    mDesiredDirection = mDirectionSpinner
+                            .getItemAtPosition(dirRandom.nextInt(8)+1).toString();
+                } else {
+                    mDesiredDirection = mDirectionSpinner.getSelectedItem().toString();
+                }
 
                 if (isNetworkAvailable()) {
 
                     OkHttpClient client = new OkHttpClient();
                     Request request = new Request.Builder()
-//                            .url(getDirectionUrl(mLatitude,mLongitude,mDesiredDirection))
-                            .url(getDirectionUrl(49.5197,7.6808 , mDesiredDirection))
+                            .url(getDirectionUrl(mCurrentLatitude, mCurrentLongitude,mDesiredDirection))
+//                            .url(getDirectionUrl(49.5197,7.6808 , mDesiredDirection))
                             .build();
                     Call call = client.newCall(request);
                     call.enqueue(new Callback() {
@@ -105,9 +121,14 @@ public class MainActivity extends ActionBarActivity implements
                                 @Override
                                 public void run() {
 
+                                    double[] yelpLatLng = yelpOnlyPoints
+                                            (mCurrentLatitude, mCurrentLongitude, mDesiredDirection);
+                                    yelpIt(yelpLatLng[0], yelpLatLng[1]);
+
                                 }
                             });
                             //  Alert user about error
+                            Log.d(TAG, "okHttp geoNames Failed");
                         }
 
                         @Override
@@ -130,34 +151,41 @@ public class MainActivity extends ActionBarActivity implements
                                             Cities[] cities = mGeoNameData.getCities();
 
                                             Random random = new Random();
-                                            int i = random.nextInt(cities.length);
-
-//                                            final Double yelpLat = cities[i].getLat();
-//                                            final Double yelpLng = cities[i].getLng();
-
-                                            final Double yelpLat = 49.5197 + mDesiredDistance;
-                                            final Double yelpLng = 7.6808  - mDesiredDistance;
-
-                                            Thread yelp = new Thread(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                String[] args = new String[4];
-                                                args[0] = "--term";
-                                                args[1] = "dinner";
-                                                args[2] = "--ll";
-                                                args[3] = yelpLat + " , " + yelpLng;
-
-                                                YelpAPI.main(args, mContext);
+                                            if (cities.length <= 0){
+                                                yelpOnlyPoints(mCurrentLatitude, mCurrentLongitude
+                                                        ,mDesiredDirection);
+                                            } else {
+                                                int i = random.nextInt(cities.length);
+                                                mYelpLat = cities[i].getLat();
+                                                mYelpLng = cities[i].getLng();
+                                                if (mYelpLat <= 0 || mYelpLng <= 0) {
+                                                    yelpOnlyPoints(mCurrentLatitude, mCurrentLongitude
+                                                            ,mDesiredDirection);
+                                                }
                                             }
-                                        });
 
-                                        yelp.start();
+                                            yelpIt(mYelpLat, mYelpLng);
+
+//                                            Thread yelp = new Thread(new Runnable() {
+//                                            @Override
+//                                            public void run() {
+//                                                String[] args = new String[4];
+//                                                args[0] = "--term";
+//                                                args[1] = "dinner";
+//                                                args[2] = "--ll";
+//                                                args[3] = mYelpLat + " , " + mYelpLng;
+//
+//                                                YelpAPI.main(args, mContext);
+//                                            }
+//                                        });
+//
+//                                        yelp.start();
                                         }
                                     });
 
                                 } else {
                                     //   alert user about error
-                                    Log.v(TAG, response.body().string());
+                                    Log.v(TAG, jsonData.toString());
                                 }
                             }
                             catch (IOException e) {
@@ -232,10 +260,9 @@ public class MainActivity extends ActionBarActivity implements
 
     private void handleNewLocation (Location location) {
 
-        mLongitude = location.getLongitude();
-        mLatitude = location.getLatitude();
+        mCurrentLongitude = location.getLongitude();
+        mCurrentLatitude = location.getLatitude();
 
-        mLocationEditText.setHint(mLongitude + " , " + mLatitude);
         Log.d(TAG, location.toString());
     }
 
@@ -255,6 +282,7 @@ public class MainActivity extends ActionBarActivity implements
     }
 
     public String getDirectionUrl (double latitude, double longitude, String direction) {
+
         double newLat = latitude;
         double newLng = longitude;
         String directionURL;
@@ -263,9 +291,25 @@ public class MainActivity extends ActionBarActivity implements
                 newLat = latitude + mDesiredDistance;
                 newLng = longitude;
                 break;
+            case "NE":
+                newLat = latitude + (mDesiredDistance * .8);
+                newLng = longitude + (mDesiredDistance * .8);
+                break;
+            case "NW":
+                newLat = latitude + (mDesiredDistance * .8);
+                newLng = longitude - (mDesiredDistance * .8);
+                break;
             case "S":
                 newLat = latitude - mDesiredDistance;
                 newLng = longitude;
+                break;
+            case "SE":
+                newLat = latitude - (mDesiredDistance * .8);
+                newLng = longitude + (mDesiredDistance * .8);
+                break;
+            case "SW":
+                newLat = latitude - (mDesiredDistance * .8);
+                newLng = longitude - (mDesiredDistance * .8);
                 break;
             case "E":
                 newLat = latitude;
@@ -276,6 +320,10 @@ public class MainActivity extends ActionBarActivity implements
                 newLng = longitude - mDesiredDistance;
                 break;
         }
+        DecimalFormat decimalFormat = new DecimalFormat();
+        decimalFormat.setMaximumFractionDigits(8);
+        decimalFormat.format(newLat);
+        decimalFormat.format(newLng);
 
         directionURL = "http://api.geonames.org/findNearbyPlaceNameJSON?lat=" + newLat +
                 "&lng=" + newLng + "&username=yukidev&style=MEDIUM&cities=cities1000&radius=100";
@@ -284,11 +332,12 @@ public class MainActivity extends ActionBarActivity implements
     }
 
     public double milesToLatLng (int miles) {
-        DecimalFormat decimalFormat = new DecimalFormat("0.0000");
+        DecimalFormat decimalFormat = new DecimalFormat();
         double latLng;
         double km;
         km = Math.round(miles / 0.62137);
         latLng = km * .00904977;
+        decimalFormat.setMaximumFractionDigits(8);
         decimalFormat.format(latLng);
         return latLng;
     }
@@ -330,6 +379,79 @@ public class MainActivity extends ActionBarActivity implements
         }
 
         return city;
-
     }
+
+    private double[] yelpOnlyPoints (double latitude, double longitude, String direction) {
+        DecimalFormat decimalFormat = new DecimalFormat();
+        double[] yelpLatLng = new double[2];
+        double newLat = latitude;
+        double newLng = longitude;
+
+        switch (direction) {
+            case "N":
+                newLat = latitude + mDesiredDistance;
+                newLng = longitude;
+                break;
+            case "NE":
+                newLat = latitude + (mDesiredDistance * .8);
+                newLng = longitude + (mDesiredDistance * .8);
+                break;
+            case "NW":
+                newLat = latitude + (mDesiredDistance * .8);
+                newLng = longitude - (mDesiredDistance * .8);
+                break;
+            case "S":
+                newLat = latitude - mDesiredDistance;
+                newLng = longitude;
+                break;
+            case "SE":
+                newLat = latitude - (mDesiredDistance * .8);
+                newLng = longitude + (mDesiredDistance * .8);
+                break;
+            case "SW":
+                newLat = latitude - (mDesiredDistance * .8);
+                newLng = longitude - (mDesiredDistance * .8);
+                break;
+            case "E":
+                newLat = latitude;
+                newLng = longitude + mDesiredDistance;
+                break;
+            case "W":
+                newLat = latitude;
+                newLng = longitude - mDesiredDistance;
+                break;
+        }
+        decimalFormat.setMaximumFractionDigits(8);
+        decimalFormat.format(newLat);
+        decimalFormat.format(newLng);
+
+        yelpLatLng[0] = newLat;
+        yelpLatLng[1] = newLng;
+
+        return yelpLatLng;
+    }
+
+    private void yelpIt (final double latitude, final double longitude) {
+        final String searchTerm;
+        if (mSearchTermEditText.getText().toString().equals("")){
+            searchTerm = "restaurants";
+        } else {
+            searchTerm = mSearchTermEditText.getText().toString();
+        }
+
+        Thread yelp = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                String[] args = new String[4];
+                args[0] = "--term";
+                args[1] = "" + searchTerm;
+                args[2] = "--ll";
+                args[3] = latitude + " , " + longitude;
+
+                YelpAPI.main(args, mContext);
+            }
+        });
+        yelp.start();
+    }
+
 }

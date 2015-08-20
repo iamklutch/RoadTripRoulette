@@ -162,12 +162,16 @@ public class YelpAPI {
         int i = random.nextInt(businesses.size());
         JSONObject randomBusiness = (JSONObject) businesses.get(i);
         String businessName = randomBusiness.get("name").toString();
-        String businessImgUrl = "";
-//        if (randomBusiness.get("image_url").toString().equals(null)){
-//            businessImgUrl = "No image available";
-//        }else {
-//            businessImgUrl = randomBusiness.get("image_url").toString();
-//        }
+
+        String businessImgUrl = "NA";
+        try{
+        randomBusiness.get("image_url").toString();
+        } catch (NullPointerException e) {
+            businessImgUrl = "NA";
+        }
+
+        double rating = Double.parseDouble(randomBusiness.get("rating").toString());
+        String ratingUrl = randomBusiness.get("rating_img_url_large").toString();
         JSONObject location = (JSONObject) randomBusiness.get("location");
         JSONObject coordinates = (JSONObject) location.get("coordinate");
         double businessLat = Double.parseDouble(coordinates.get("latitude").toString());
@@ -178,6 +182,8 @@ public class YelpAPI {
         intent.putExtra("lng", businessLng);
         intent.putExtra("name", businessName);
         intent.putExtra("imageUrl", businessImgUrl);
+        intent.putExtra("rating", rating);
+        intent.putExtra("ratingUrl", ratingUrl);
         context.startActivity(intent);
 
 
@@ -202,7 +208,6 @@ public class YelpAPI {
 
         @Parameter(names = {"-L", "--ll"}, description = "Location Lat Long")
         public String latlong = DEFAULT_LATLONG;
-
     }
 
     /**

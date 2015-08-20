@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">RoadTripRoulette</string>
+    <string name="app_name">Road Trip Roulette</string>
     <string name="title_activity_navigation">Map</string>
     <string name="title_activity_main">MainActivity</string>
 
@@ -8,4 +8,28 @@
 
     <string name="network_unavailable">Network Unavailable</string>
     <string name="title_activity_result">ResultActivity</string>
+
+    <string name="direction_spinner_prompt">Direction</string>
+    <array name="direction_spinner_items">
+        <item>Random</item>
+        <item>N</item>
+        <item>NE</item>
+        <item>E</item>
+        <item>SE</item>
+        <item>S</item>
+        <item>SW</item>
+        <item>W</item>
+        <item>NW</item>
+    </array>
+
+    <array name="category_spinner_items">
+        <item>Random</item>
+        <item>Restaurants</item>
+        <item>Nightlife</item>
+        <item>Bars</item>
+        <item>Laser Tag</item>
+        <item>Hiking</item>
+        <item>Mountain Biking</item>
+        <item>Parks</item>
+    </array>
 </resources>

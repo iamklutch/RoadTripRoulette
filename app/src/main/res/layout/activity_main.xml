@@ -6,58 +6,63 @@
                 android:paddingRight="@dimen/activity_horizontal_margin"
                 android:paddingTop="@dimen/activity_vertical_margin"
                 android:paddingBottom="@dimen/activity_vertical_margin"
+                android:background="#46ff59"
                 tools:context="com.yukidev.roadtriproulette.MainActivity">
 
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:id="@+id/linearLayout"
+    android:background="@android:color/white">
 
     <EditText
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/cityEditText"
+        android:id="@+id/searchTermEditText"
+        android:layout_marginTop="53dp"
+        android:hint="Search term, i.e. tacos, bars, nightlife"
         android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="55dp"
-        android:hint="Enter a city or leave blank for current location"/>
-
-    <Spinner
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/catagorySpinner"
-        android:layout_below="@+id/cityEditText"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"/>
+        android:layout_alignParentStart="true"
+        />
 
-    <Spinner
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/subCatagorySpinner"
-        android:layout_below="@+id/catagorySpinner"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"/>
+        android:id="@+id/linearLayout1"
+        android:layout_below="@id/searchTermEditText"
+        android:orientation="horizontal">
+
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/distanceEditText"
+            android:paddingTop="16dp"
+            android:layout_weight="1"
+            android:textSize="22sp"
+            android:inputType="number"
+            android:hint="How far? (Miles)"/>
+
+        <Spinner
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/directionSpinner"
+            android:entries="@array/direction_spinner_items"
+            android:layout_weight="1"/>
+
+    </LinearLayout>
+
+</LinearLayout>
 
     <ImageButton
         android:layout_width="250dp"
-        android:layout_height="130dp"
+        android:layout_height="200dp"
+        android:scaleType="fitXY"
         android:id="@+id/letsGoImageButton"
         android:src="@drawable/yuki_dev"
-        android:layout_below="@+id/subCatagorySpinner"
+        android:layout_below="@+id/linearLayout"
         android:layout_centerHorizontal="true"/>
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Lat"
-        android:id="@+id/latTextView"
-        android:layout_below="@+id/letsGoImageButton"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"/>
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Lng"
-        android:id="@+id/lngTextView"
-        android:layout_below="@+id/latTextView"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"/>
 
 </RelativeLayout>
