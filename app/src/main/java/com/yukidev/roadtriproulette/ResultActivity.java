@@ -25,6 +25,7 @@ public class ResultActivity extends AppCompatActivity {
     @Bind(R.id.navigateButton)Button mNavigateButton;
     @Bind(R.id.businessImageView)ImageView mBusinessImageView;
     @Bind(R.id.starsImageView)ImageView mStarsImageView;
+    @Bind(R.id.directionTextView) TextView mDirectionTextView;
 
     private String mName;
     private double mLat;
@@ -32,6 +33,7 @@ public class ResultActivity extends AppCompatActivity {
     private double mRating;
     private String mImageUrl;
     private String mRatingUrl;
+    private String mCity;
 
 
     @Override
@@ -47,6 +49,7 @@ public class ResultActivity extends AppCompatActivity {
         mImageUrl = intent.getStringExtra("imageUrl");
         mRating = intent.getDoubleExtra("rating", 3.0);
         mRatingUrl = intent.getStringExtra("ratingUrl");
+        mCity = intent.getStringExtra("city");
 
         if (mRating == 0.0){
             mStarsImageView.setImageResource(R.drawable.nostars);
@@ -71,6 +74,7 @@ public class ResultActivity extends AppCompatActivity {
         }
 
         mBusinessName.setText(mName);
+        mDirectionTextView.setText(mCity);
         mBusinessLat.setText("" + mLat);
         mBusinessLng.setText("" + mLng);
 

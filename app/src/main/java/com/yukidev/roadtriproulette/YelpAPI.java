@@ -163,9 +163,9 @@ public class YelpAPI {
         JSONObject randomBusiness = (JSONObject) businesses.get(i);
         String businessName = randomBusiness.get("name").toString();
 
-        String businessImgUrl = "NA";
+        String businessImgUrl;
         try{
-        randomBusiness.get("image_url").toString();
+            businessImgUrl = randomBusiness.get("image_url").toString();
         } catch (NullPointerException e) {
             businessImgUrl = "NA";
         }
@@ -174,6 +174,7 @@ public class YelpAPI {
         String ratingUrl = randomBusiness.get("rating_img_url_large").toString();
         JSONObject location = (JSONObject) randomBusiness.get("location");
         JSONObject coordinates = (JSONObject) location.get("coordinate");
+        String businessCity = location.get("city").toString();
         double businessLat = Double.parseDouble(coordinates.get("latitude").toString());
         double businessLng = Double.parseDouble(coordinates.get("longitude").toString());
 
@@ -181,19 +182,12 @@ public class YelpAPI {
         intent.putExtra("lat", businessLat);
         intent.putExtra("lng", businessLng);
         intent.putExtra("name", businessName);
+        intent.putExtra("city", businessCity);
         intent.putExtra("imageUrl", businessImgUrl);
         intent.putExtra("rating", rating);
         intent.putExtra("ratingUrl", ratingUrl);
         context.startActivity(intent);
 
-
-//        System.out.println(String.format(
-//                "%s businesses found, querying business info for the top result \"%s\" ...",
-//                businesses.size(), businessName));
-//        // Select the first business and display business details
-//        String businessResponseJSON = yelpApi.searchByBusinessId(businessName.toString());
-//        System.out.println(String.format("Result for business \"%s\" found:", businessName));
-//        System.out.println(businessResponseJSON);
     }
 
     /**

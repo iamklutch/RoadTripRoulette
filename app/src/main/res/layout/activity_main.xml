@@ -6,22 +6,26 @@
                 android:paddingRight="@dimen/activity_horizontal_margin"
                 android:paddingTop="@dimen/activity_vertical_margin"
                 android:paddingBottom="@dimen/activity_vertical_margin"
-                android:background="#46ff59"
+                android:background="@drawable/rtr_background_green_720"
                 tools:context="com.yukidev.roadtriproulette.MainActivity">
 
 <LinearLayout
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
+    android:layout_marginTop="14dp"
     android:id="@+id/linearLayout"
-    android:background="@android:color/white">
+    android:background="@drawable/linear_style"
+    android:layout_alignParentTop="true"
+    android:layout_alignParentLeft="true"
+    android:layout_alignParentStart="true">
 
     <EditText
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/searchTermEditText"
-        android:layout_marginTop="53dp"
-        android:hint="Search term, i.e. tacos, bars, nightlife"
+        android:layout_marginTop="5dp"
+        android:hint="Search term, i.e. tacos, bars, nightlife, whatever"
         android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
@@ -40,7 +44,7 @@
             android:id="@+id/distanceEditText"
             android:paddingTop="16dp"
             android:layout_weight="1"
-            android:textSize="22sp"
+            android:textSize="18sp"
             android:inputType="number"
             android:hint="How far? (Miles)"/>
 
@@ -57,12 +61,25 @@
 
     <ImageButton
         android:layout_width="250dp"
-        android:layout_height="200dp"
+        android:layout_height="250dp"
         android:scaleType="fitXY"
+        android:layout_marginTop="25dp"
         android:id="@+id/letsGoImageButton"
-        android:src="@drawable/yuki_dev"
+        android:src="@drawable/rtr_button"
         android:layout_below="@+id/linearLayout"
-        android:layout_centerHorizontal="true"/>
+        android:layout_centerHorizontal="true"
+        android:background="@android:color/transparent"/>
+
+    <ImageView
+        android:layout_width="250dp"
+        android:layout_height="250dp"
+        android:scaleType="fitXY"
+        android:layout_marginTop="25dp"
+        android:layout_below="@+id/linearLayout"
+        android:id="@+id/spinningWheelImageView"
+        android:visibility="invisible"
+        android:layout_centerHorizontal="true"
+        android:background="@android:color/transparent"/>
 
 
 </RelativeLayout>
