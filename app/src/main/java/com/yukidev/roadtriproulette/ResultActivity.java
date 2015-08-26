@@ -1,31 +1,34 @@
 package com.yukidev.roadtriproulette;
 
 import android.content.Intent;
+import android.graphics.Typeface;
 import android.net.Uri;
-import android.support.annotation.DrawableRes;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.Button;
+import android.view.MotionEvent;
+import android.view.View;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
 import com.squareup.picasso.Picasso;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
-public class ResultActivity extends AppCompatActivity {
+public class ResultActivity extends AppCompatActivity implements View.OnTouchListener {
 
     @Bind(R.id.resultBusinessNameTextView)TextView mBusinessName;
-    @Bind(R.id.resultBusinessLat)TextView mBusinessLat;
-    @Bind(R.id.resultBusinessLng)TextView mBusinessLng;
-    @Bind(R.id.navigateButton)Button mNavigateButton;
+    @Bind(R.id.navigateButton)ImageButton mNavigateButton;
+    @Bind(R.id.noWayButton)ImageButton mNoWayButton;
     @Bind(R.id.businessImageView)ImageView mBusinessImageView;
-    @Bind(R.id.starsImageView)ImageView mStarsImageView;
-    @Bind(R.id.directionTextView) TextView mDirectionTextView;
+    @Bind(R.id.starsImageButton)ImageButton mStarsImageView;
+    @Bind(R.id.directionTextView) TextView mCityTextView;
 
     private String mName;
     private double mLat;
@@ -34,6 +37,7 @@ public class ResultActivity extends AppCompatActivity {
     private String mImageUrl;
     private String mRatingUrl;
     private String mCity;
+    private String mYelpUrl;
 
 
     @Override
@@ -41,6 +45,17 @@ public class ResultActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_result);
         ButterKnife.bind(this);
+
+        //Make the ads
+        AdView mAdView = (AdView) findViewById(R.id.adViewResult);
+        AdRequest adRequest = new AdRequest.Builder()
+                .addTestDevice("C4A083AE232F9FB04BFA58FBF0E57A0A")
+                .build();
+        mAdView.loadAd(adRequest);
+
+        mBusinessName.setTypeface(null, Typeface.BOLD);
+        mCityTextView.setTypeface(null, Typeface.BOLD);
+
 
         Intent intent = getIntent();
         mName = intent.getStringExtra("name");
@@ -50,6 +65,8 @@ public class ResultActivity extends AppCompatActivity {
         mRating = intent.getDoubleExtra("rating", 3.0);
         mRatingUrl = intent.getStringExtra("ratingUrl");
         mCity = intent.getStringExtra("city");
+        mYelpUrl = intent.getStringExtra("yelpUrl");
+
 
         if (mRating == 0.0){
             mStarsImageView.setImageResource(R.drawable.nostars);
@@ -73,22 +90,22 @@ public class ResultActivity extends AppCompatActivity {
             mStarsImageView.setImageResource(R.drawable.fivestars);
         }
 
-        mBusinessName.setText(mName);
-        mDirectionTextView.setText(mCity);
-        mBusinessLat.setText("" + mLat);
-        mBusinessLng.setText("" + mLng);
+        mBusinessName.setOnTouchListener(this);
+        mCityTextView.setOnTouchListener(this);
+
 
 
             Picasso.with (this)
                     .load(mImageUrl)
                     .placeholder(R.drawable.ic_action_photo_dark)
                     .into(mBusinessImageView);
+    }
 
-//            Picasso.with(this)
-//                    .load(mRatingUrl)
-//                    .placeholder(R.drawable.nostars)
-//                    .into(mStarsImageView);
-
+    @OnClick (R.id.noWayButton)
+    public void goBack(){
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
     }
 
     @OnClick (R.id.navigateButton)
@@ -97,6 +114,13 @@ public class ResultActivity extends AppCompatActivity {
                 Uri.parse("google.navigation:q=" + mLat +"," + mLng));
         naviIntent.setPackage("com.google.android.apps.maps");
         startActivity(naviIntent);
+    }
+
+    @OnClick (R.id.starsImageButton)
+    public void gotoYelpBusinessPage(){
+        Intent yelpIntent = new Intent(Intent.ACTION_VIEW);
+        yelpIntent.setData(Uri.parse(mYelpUrl));
+        startActivity(yelpIntent);
     }
 
     @Override
@@ -121,4 +145,10 @@ public class ResultActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    public boolean onTouch(View v, MotionEvent event) {
+        mBusinessName.setText(mName);
+        mCityTextView.setText(mCity);
+        return false;
+    }
 }

@@ -1,7 +1,12 @@
 package com.yukidev.roadtriproulette;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Handler;
+import android.os.Message;
+import android.util.Log;
+import android.widget.Toast;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -34,7 +39,7 @@ import java.util.Random;
 /**
  * Created by YukiDev on 7/24/2015.
  */
-public class YelpAPI {
+public class YelpAPI{
 
     private static final String API_HOST = "api.yelp.com";
     private static final String DEFAULT_TERM = "dinner";
@@ -43,6 +48,7 @@ public class YelpAPI {
     private static final int SEARCH_LIMIT = 20;
     private static final String SEARCH_PATH = "/v2/search";
     private static final String BUSINESS_PATH = "/v2/business";
+    private static Boolean mError = false;
 
     /*
      * Update OAuth credentials below from the Yelp Developers API site:
@@ -143,7 +149,7 @@ public class YelpAPI {
      * @param yelpApi <tt>YelpAPI</tt> service instance
      * @param yelpApiCli <tt>YelpAPICLI</tt> command line arguments
      */
-    private static void queryAPI(YelpAPI yelpApi, YelpAPICLI yelpApiCli, Context context) {
+    private static void queryAPI(YelpAPI yelpApi, YelpAPICLI yelpApiCli, final Context context) {
         String searchResponseJSON =
                 yelpApi.searchForBusinessesByLocation(yelpApiCli.term, yelpApiCli.latlong);
 
@@ -152,42 +158,93 @@ public class YelpAPI {
         try {
             response = (JSONObject) parser.parse(searchResponseJSON);
         } catch (ParseException pe) {
-            System.out.println("Error: could not parse JSON response:");
-            System.out.println(searchResponseJSON);
+            Log.d("YelpAPI: ", "Error: could not parse JSON response:" + searchResponseJSON);
             System.exit(1);
         }
 
-        JSONArray businesses = (JSONArray) response.get("businesses");
-        Random random = new Random();
-        int i = random.nextInt(businesses.size());
-        JSONObject randomBusiness = (JSONObject) businesses.get(i);
-        String businessName = randomBusiness.get("name").toString();
+        try {
+            JSONObject error = (JSONObject) response.get("error");
+            JSONArray businesscheck = (JSONArray) response.get("businesses");
 
-        String businessImgUrl;
-        try{
-            businessImgUrl = randomBusiness.get("image_url").toString();
-        } catch (NullPointerException e) {
-            businessImgUrl = "NA";
+            // if there are no businesses found
+            if (response.size() <= 1 || businesscheck.isEmpty()) {
+                mError = true;
+
+                Handler errorHandler = new Handler(context.getMainLooper());
+                Runnable errorIntentRunnable = new Runnable() {
+
+                    @Override
+                    public void run() {
+                        final Intent errorIntent = new Intent(context, MainActivity.class);
+                        errorIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                        errorIntent.putExtra("error", "noBusiness");
+                        context.startActivity(errorIntent);
+
+                    }
+                };
+                errorHandler.post(errorIntentRunnable);
+
+            }
+
+            // if Yelp isn't available here yet. . .
+            if (error.get("text").equals("API unavailable in this location")){
+                mError = true;
+
+                Handler errorHandler = new Handler(context.getMainLooper());
+                Runnable errorIntentRunnable = new Runnable() {
+
+                    @Override
+                    public void run() {
+                        final Intent errorIntent = new Intent(context, MainActivity.class);
+                        errorIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                        errorIntent.putExtra("error", "noYelp");
+                        context.startActivity(errorIntent);
+
+                    }
+                };
+                errorHandler.post(errorIntentRunnable);
+            }
+        }catch (NullPointerException npe) {
+            // do nothing
         }
 
-        double rating = Double.parseDouble(randomBusiness.get("rating").toString());
-        String ratingUrl = randomBusiness.get("rating_img_url_large").toString();
-        JSONObject location = (JSONObject) randomBusiness.get("location");
-        JSONObject coordinates = (JSONObject) location.get("coordinate");
-        String businessCity = location.get("city").toString();
-        double businessLat = Double.parseDouble(coordinates.get("latitude").toString());
-        double businessLng = Double.parseDouble(coordinates.get("longitude").toString());
+        if (!mError == true) {
 
-        Intent intent = new Intent(context, ResultActivity.class);
-        intent.putExtra("lat", businessLat);
-        intent.putExtra("lng", businessLng);
-        intent.putExtra("name", businessName);
-        intent.putExtra("city", businessCity);
-        intent.putExtra("imageUrl", businessImgUrl);
-        intent.putExtra("rating", rating);
-        intent.putExtra("ratingUrl", ratingUrl);
-        context.startActivity(intent);
+            JSONArray businesses = (JSONArray) response.get("businesses");
+            Random random = new Random();
+            int i = random.nextInt(businesses.size());
+            JSONObject randomBusiness = (JSONObject) businesses.get(i);
+            String businessName = randomBusiness.get("name").toString();
 
+            String businessImgUrl;
+            try {
+                businessImgUrl = randomBusiness.get("image_url").toString();
+            } catch (NullPointerException e) {
+                businessImgUrl = "NA";
+            }
+
+            double rating = Double.parseDouble(randomBusiness.get("rating").toString());
+            String ratingUrl = randomBusiness.get("rating_img_url_large").toString();
+            String yelpBusinessUrl = randomBusiness.get("url").toString();
+            // get direction, coordinates and city
+            JSONObject location = (JSONObject) randomBusiness.get("location");
+            JSONObject coordinates = (JSONObject) location.get("coordinate");
+            String businessCity = location.get("city").toString();
+            double businessLat = Double.parseDouble(coordinates.get("latitude").toString());
+            double businessLng = Double.parseDouble(coordinates.get("longitude").toString());
+
+            Intent intent = new Intent(context, ResultActivity.class);
+            intent.putExtra("lat", businessLat);
+            intent.putExtra("lng", businessLng);
+            intent.putExtra("name", businessName);
+            intent.putExtra("city", businessCity);
+            intent.putExtra("imageUrl", businessImgUrl);
+            intent.putExtra("rating", rating);
+            intent.putExtra("ratingUrl", ratingUrl);
+            intent.putExtra("yelpUrl", yelpBusinessUrl);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(intent);
+        }
     }
 
     /**

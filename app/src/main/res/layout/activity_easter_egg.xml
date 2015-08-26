@@ -1,0 +1,35 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:tools="http://schemas.android.com/tools"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:paddingLeft="@dimen/activity_horizontal_margin"
+                android:paddingRight="@dimen/activity_horizontal_margin"
+                android:paddingTop="@dimen/activity_vertical_margin"
+                android:paddingBottom="5dp"
+                android:background="@drawable/rtr_background_green_720"
+                tools:context="com.yukidev.roadtriproulette.EasterEggActivity">
+
+    <ImageButton
+        android:text="@string/you_win_text"
+        android:layout_width="wrap_content"
+        android:id="@+id/winBannerImageButton"
+        android:layout_height="390dp"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:src="@drawable/easter_egg"
+        android:background="@android:color/transparent"
+        android:scaleType="fitXY"
+        />
+
+    <ImageView
+        android:text="@string/you_win_text"
+        android:layout_width="wrap_content"
+        android:id="@+id/winBannerImageView"
+        android:layout_height="100dp"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:src="@drawable/rtr_win_banner"
+        android:scaleType="fitXY"
+        />
+
+</RelativeLayout>

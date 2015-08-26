@@ -1,19 +1,31 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
                 xmlns:tools="http://schemas.android.com/tools"
+                xmlns:ads="http://schemas.android.com/apk/res-auto"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:paddingLeft="@dimen/activity_horizontal_margin"
                 android:paddingRight="@dimen/activity_horizontal_margin"
-                android:paddingTop="135dp"
+                android:paddingTop="16dp"
                 android:paddingBottom="@dimen/activity_vertical_margin"
                 tools:context="com.yukidev.roadtriproulette.ResultActivity"
                 android:background="@drawable/rtr_background_green_720">
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:id="@+id/youWinImageView"
+        android:layout_alignParentTop="true"
+        android:src="@drawable/rtr_result_win_banner"
+        android:scaleType="fitXY"
+        android:layout_centerHorizontal="true"/>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:id="@id/linearLayout"
+        android:layout_below="@+id/youWinImageView"
+        android:layout_marginTop="10dp"
         android:background="@drawable/linear_style"
         android:padding="10dp">
 
@@ -27,6 +39,7 @@
             android:src="@drawable/ic_action_photo_dark"
             android:background="@android:color/white"/>
 
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -38,25 +51,31 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Business Name"
-                android:maxLength="15"
-
+                android:text="DATA MASKED"
+                android:maxLength="18"
                 android:layout_weight="1"
-                android:id="@+id/resultBusinessNameTextView"
-                android:textSize="22sp"/>
+                android:clickable="true"
+                android:textSize="22sp"
+                android:id="@+id/resultBusinessNameTextView"/>
+
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:id="@+id/directionTextView"
                 android:layout_weight="1"
-                android:text="City"
-                android:textSize="26sp"/>
+                android:clickable="true"
+                android:textSize="22sp"
+                android:maxLength="18"
+                android:text="DATA MASKED"/>
 
-            <ImageView
+            <ImageButton
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:id="@+id/starsImageView"
+                android:scaleType="fitCenter"
+                android:layout_marginTop="20dp"
+                android:background="@android:color/transparent"
+                android:id="@+id/starsImageButton"
                 android:layout_below="@+id/resultBusinessLat"
                 android:src="@drawable/fivestars"/>
 
@@ -64,31 +83,46 @@
 
     </LinearLayout>
 
-    <Button
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="90dp"
+        android:id="@+id/linearLayout2"
+        android:layout_below="@id/linearLayout"
+        android:layout_marginTop="15dp"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:scaleType="fitXY"
+            android:layout_weight="1"
+            android:background="@android:color/transparent"
+            android:src="@drawable/rtr_noway_button"
+            android:id="@+id/noWayButton"
+            android:layout_centerHorizontal="true"/>
+
+        <ImageButton
+            android:layout_width="match_parent"
+            android:layout_height="90dp"
+            android:scaleType="fitXY"
+            android:layout_weight="1"
+            android:background="@android:color/transparent"
+            android:src="@drawable/rtr_letsgo_button"
+            android:id="@+id/navigateButton"
+            android:layout_centerHorizontal="true"/>
+
+    </LinearLayout>
+
+    <com.google.android.gms.ads.AdView
+        android:id="@+id/adViewResult"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Navigate"
-        android:id="@+id/navigateButton"
         android:layout_centerHorizontal="true"
-        android:layout_below="@id/linearLayout"/>
+        android:layout_alignParentBottom="true"
+        ads:adSize="BANNER"
+        ads:adUnitId="@string/banner_ad_unit_result_page">
+    </com.google.android.gms.ads.AdView>
 
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Lat"
-        android:id="@+id/resultBusinessLat"
-        android:layout_below="@id/navigateButton"
-        android:textSize="28sp"/>
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Lng"
-        android:id="@+id/resultBusinessLng"
-        android:layout_below="@+id/resultBusinessLat"
-        android:textSize="28sp"
-        android:layout_centerHorizontal="true"/>
 
 
 </RelativeLayout>

@@ -1,55 +1,49 @@
 package com.yukidev.roadtriproulette;
 
-import android.app.ActionBar;
+import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Typeface;
 import android.graphics.drawable.AnimationDrawable;
-import android.graphics.drawable.StateListDrawable;
 import android.location.Location;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.*;
-import android.support.v7.app.ActionBarActivity;
+import android.text.InputType;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.Spinner;
 import android.widget.Toast;
+
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
-import com.squareup.okhttp.Call;
-import com.squareup.okhttp.Callback;
-import com.squareup.okhttp.OkHttpClient;
-import com.squareup.okhttp.Request;
-import com.squareup.okhttp.Response;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.IOException;
-import java.lang.reflect.Array;
 import java.text.DecimalFormat;
 import java.util.Random;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 
 
-public class MainActivity extends ActionBarActivity implements
+public class MainActivity extends Activity implements
         GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener,
         LocationListener {
 
     public static final String TAG = MainActivity.class.getSimpleName();
+    private String mSearchTerm;
 
     private double mCurrentLongitude;
     private double mCurrentLatitude;
@@ -58,30 +52,65 @@ public class MainActivity extends ActionBarActivity implements
     private double mDesiredDistance;
     private String mDesiredDirection;
     private AnimationDrawable mFrameAnimation;
-    Context mContext;
+    private int mEggIncrement;
 
-    private GeoNameData mGeoNameData;
+    Context mContext;
 
     private Location lastKnownLocation;
     private GoogleApiClient mGoogleApiClient;
     private LocationRequest mLocationRequest;
+
     @Bind (R.id.searchTermEditText)EditText mSearchTermEditText;
     @Bind (R.id.letsGoImageButton)ImageButton mLetsGoButton;
-    @Bind (R.id.directionSpinner)Spinner mDirectionSpinner;
-    @Bind (R.id.distanceEditText)EditText mDistanceEditText;
+    @Bind (R.id.directionImageButton)ImageButton mDirectionImageButton;
     @Bind (R.id.spinningWheelImageView)ImageView mSpinningWheelView;
+    @Bind (R.id.randomButton)ImageView mRandomButton;
+    @Bind (R.id.northButton)ImageView mNorthButton;
+    @Bind (R.id.northEastButton)ImageView mNorthEastButton;
+    @Bind (R.id.eastButton)ImageView mEastButton;
+    @Bind (R.id.southEastButton)ImageView mSouthEastButton;
+    @Bind (R.id.southButton)ImageView mSouthButton;
+    @Bind (R.id.southWestButton)ImageView mSouthWestButton;
+    @Bind (R.id.westButton)ImageView mWestButton;
+    @Bind (R.id.northWestButton)ImageView mNorthWestButton;
+    @Bind (R.id.doNotPressButton)ImageView mDoNotPressButton;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
+        mEggIncrement = 0;
 
-        Typeface typeface = Typeface.createFromAsset(getAssets(), "fonts/neo_font.ttf");
-        mSearchTermEditText.setTypeface(typeface);
-        mDistanceEditText.setTypeface(typeface);
+        Intent intent = getIntent();
+        try {
+            if (intent.getStringExtra("error").equals("noYelp")){
+                Toast.makeText(this, "Yelp! is not available in this area"
+                        , Toast.LENGTH_LONG).show();
+            } else if (intent.getStringExtra("error").equals("noBusiness")){
+                Toast.makeText(this, "No locations found, try another direction or search term"
+                        , Toast.LENGTH_LONG).show();
+            }
+        } catch (NullPointerException npe) {
+            // do nothing
+        }
 
         mContext = this;
+        // in case they don't choose direction . . .
+        mDesiredDirection = randomDirection();
+        // in case they didn't choose a distance. . .
+        randomDistance();
+
+//        Typeface typeface = Typeface.createFromAsset(getAssets(), "fonts/destroy_font.ttf");
+//        mSearchTermEditText.setTypeface(typeface);
+
+        //Make the ads
+        AdView mAdView = (AdView) findViewById(R.id.adViewFront);
+        AdRequest adRequest = new AdRequest.Builder()
+                .addTestDevice("C4A083AE232F9FB04BFA58FBF0E57A0A")
+                .build();
+        mAdView.loadAd(adRequest);
 
         mSpinningWheelView.setVisibility(View.INVISIBLE);
 
@@ -101,114 +130,21 @@ public class MainActivity extends ActionBarActivity implements
             @Override
             public void onClick(View v) {
 
-                //Check if no view has focus
-                InputMethodManager imm = (InputMethodManager)
-                        getSystemService(mContext.INPUT_METHOD_SERVICE);
-                imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
-
                 mSpinningWheelView.setVisibility(View.VISIBLE);
                 mSpinningWheelView.setBackgroundResource(R.drawable.spin_animation);
-                mFrameAnimation = (AnimationDrawable)mSpinningWheelView.getBackground();
+                mFrameAnimation = (AnimationDrawable) mSpinningWheelView.getBackground();
                 mFrameAnimation.setVisible(true, true);
                 mFrameAnimation.start();
 
-                if (Integer.parseInt(mDistanceEditText.getText().toString()) == 0){
-                    Random distRandom = new Random();
-                    int dist = (distRandom.nextInt(90) + 10);
-                    mDesiredDistance = milesToLatLng(dist);
-                } else {
-                    int distance = Integer.parseInt(mDistanceEditText.getText().toString());
-                    mDesiredDistance = milesToLatLng(distance);
-                }
-
-                if (mDirectionSpinner.getSelectedItemPosition() == 0){
-                    Random dirRandom = new Random();
-
-                    mDesiredDirection = mDirectionSpinner
-                            .getItemAtPosition(dirRandom.nextInt(8)+1).toString();
-                } else {
-                    mDesiredDirection = mDirectionSpinner.getSelectedItem().toString();
-                }
-
                 if (isNetworkAvailable()) {
 
-                    yelpOnlyPoints(mCurrentLatitude, mCurrentLongitude, mDesiredDirection);
+                    if (mSearchTermEditText.getText().toString().equals("")){
+                        randomSearch();
+                    } else {
+                        mSearchTerm = mSearchTermEditText.getText().toString();
+                    }
+                    getYelpLatLng(mCurrentLatitude, mCurrentLongitude, mDesiredDirection);
                     yelpIt(mYelpLat, mYelpLng);
-
-//                    OkHttpClient client = new OkHttpClient();
-//                    Request request = new Request.Builder()
-//                            .url(getDirectionUrl(mCurrentLatitude, mCurrentLongitude,mDesiredDirection))
-////                            .url(getDirectionUrl(49.5197,7.6808 , mDesiredDirection))
-//                            .build();
-//                    Call call = client.newCall(request);
-//                    call.enqueue(new Callback() {
-//                        @Override
-//                        public void onFailure(Request request, IOException e) {
-//                            runOnUiThread(new Runnable() {
-//                                @Override
-//                                public void run() {
-//
-//                                    double[] yelpLatLng = yelpOnlyPoints
-//                                            (mCurrentLatitude, mCurrentLongitude, mDesiredDirection);
-//                                    yelpIt(yelpLatLng[0], yelpLatLng[1]);
-//
-//                                }
-//                            });
-//                            //  Alert user about error
-//                            Log.d(TAG, "okHttp geoNames Failed");
-//                        }
-//
-//                        @Override
-//                        public void onResponse(Response response) throws IOException {
-//                            runOnUiThread(new Runnable() {
-//                                @Override
-//                                public void run() {
-//
-//                                }
-//                            });
-//
-//                            try {
-//                                String jsonData = response.body().string();
-//                                if (response.isSuccessful()) {
-//                                    mGeoNameData = parsePlaceDetails(jsonData);
-//                                    // runOnUiThread allows the data on the background thread go to the Main UI thread.
-//                                    runOnUiThread(new Runnable() {
-//                                        @Override
-//                                        public void run() {
-//                                            Cities[] cities = mGeoNameData.getCities();
-//
-//                                            Random random = new Random();
-//                                            if (cities.length <= 0){
-//                                                yelpOnlyPoints(mCurrentLatitude, mCurrentLongitude
-//                                                        ,mDesiredDirection);
-//                                            } else {
-//                                                int i = random.nextInt(cities.length);
-//                                                mYelpLat = cities[i].getLat();
-//                                                mYelpLng = cities[i].getLng();
-//                                                if (mYelpLat <= 0 || mYelpLng <= 0) {
-//                                                    yelpOnlyPoints(mCurrentLatitude, mCurrentLongitude
-//                                                            ,mDesiredDirection);
-//                                                }
-//                                            }
-//
-//                                            yelpIt(mYelpLat, mYelpLng);
-//
-//                                        }
-//                                    });
-//
-//                                } else {
-//                                    //   alert user about error
-//                                    Log.v(TAG, jsonData.toString());
-//                                }
-//                            }
-//                            catch (IOException e) {
-//                                Log.e(TAG, "Exception caught: ", e);
-//                            }
-//                            catch (JSONException e){
-//                                Log.e(TAG, "Exception caught: ", e);
-//                            }
-//                        }
-//                    });
 
 
                 } else {
@@ -217,7 +153,260 @@ public class MainActivity extends ActionBarActivity implements
                 }
             }
         });
+    }
 
+    private void randomSearch(){
+        Random random = new Random();
+        int id = random.nextInt(7);
+        switch (id){
+            default:
+                mSearchTerm = "food";
+                break;
+            case 0:
+                mSearchTerm = "dinner";
+                break;
+            case 1:
+                mSearchTerm = "bars";
+                break;
+            case 2:
+                mSearchTerm = "nightlife";
+                break;
+            case 3:
+                mSearchTerm = "amusement";
+                break;
+            case 4:
+                mSearchTerm = "local flavor";
+                break;
+            case 5:
+                mSearchTerm = "movies";
+                break;
+            case 6:
+                mSearchTerm = "breakfast";
+                break;
+        }
+    }
+
+    @OnClick (R.id.distanceImageButton)
+    protected void getDesiredDistance(){
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        final EditText distanceVariable = new EditText(this);
+
+        distanceVariable.setInputType(InputType.TYPE_CLASS_NUMBER);
+        distanceVariable.setHint("Distance, in miles . . ");
+        builder.setTitle("How far?");
+        builder.setMessage("How far do you want to drive?");
+        builder.setCancelable(true);
+        builder.setView(distanceVariable);
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                if (distanceVariable.equals("")) {
+                    randomDistance();
+                }
+                // put what they chose as distance
+                int dist = Integer.parseInt(distanceVariable.getText().toString());
+                mDesiredDistance = milesToLatLng(dist);
+            }
+        });
+        builder.setNeutralButton("Random", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                randomDistance();
+            }
+        });
+        builder.create().show();
+
+    }
+
+    private void randomDistance(){
+        Random distRandom = new Random();
+        int dist = (distRandom.nextInt(120) + 5);
+        mDesiredDistance = milesToLatLng(dist);
+    }
+
+    @OnClick (R.id.directionImageButton)
+    protected void directionButton(){
+        mRandomButton.setVisibility(View.VISIBLE);
+        mNorthButton.setVisibility(View.VISIBLE);
+        mNorthEastButton.setVisibility(View.VISIBLE);
+        mEastButton.setVisibility(View.VISIBLE);
+        mSouthEastButton.setVisibility(View.VISIBLE);
+        mSouthButton.setVisibility(View.VISIBLE);
+        mSouthWestButton.setVisibility(View.VISIBLE);
+        mWestButton.setVisibility(View.VISIBLE);
+        mNorthWestButton.setVisibility(View.VISIBLE);
+    }
+
+    @OnClick (R.id.randomButton)
+    protected void randomButton(){
+        mDirectionImageButton.setImageResource(R.drawable.rtr_direction_random_button);
+        mDesiredDirection = randomDirection();
+        hideDirectionButtons();
+    }
+
+    @OnClick (R.id.northButton)
+    protected void northButton(){
+        mDesiredDirection = "N";
+        mDirectionImageButton.setImageResource(R.drawable.rtr_direction_north_button);
+        hideDirectionButtons();
+    }
+
+    @OnClick (R.id.northEastButton)
+    protected void northEastButton(){
+        mDesiredDirection = "NE";
+        mDirectionImageButton.setImageResource(R.drawable.rtr_direction_northeast_button);
+        hideDirectionButtons();
+    }
+
+    @OnClick (R.id.eastButton)
+    protected void eastButton(){
+        mDesiredDirection = "E";
+        mDirectionImageButton.setImageResource(R.drawable.rtr_direction_east_button);
+        hideDirectionButtons();
+    }
+
+    @OnClick (R.id.southEastButton)
+    protected void southEastButton(){
+        mDesiredDirection = "SE";
+        mDirectionImageButton.setImageResource(R.drawable.rtr_direction_southeast_button);
+        hideDirectionButtons();
+    }
+
+    @OnClick (R.id.southButton)
+    protected void southButton(){
+        mDesiredDirection = "S";
+        mDirectionImageButton.setImageResource(R.drawable.rtr_direction_south_button);
+        hideDirectionButtons();
+    }
+
+    @OnClick (R.id.southWestButton)
+    protected void southWestButton(){
+        mDesiredDirection = "SW";
+        mDirectionImageButton.setImageResource(R.drawable.rtr_direction_southwest_button);
+        hideDirectionButtons();
+    }
+
+    @OnClick (R.id.westButton)
+    protected void westButton(){
+        mDesiredDirection = "W";
+        mDirectionImageButton.setImageResource(R.drawable.rtr_direction_west_button);
+        hideDirectionButtons();
+    }
+
+    @OnClick (R.id.northWestButton)
+    protected void northWestButton(){
+        mDesiredDirection = "NW";
+        mDirectionImageButton.setImageResource(R.drawable.rtr_direction_northwest_button);
+        hideDirectionButtons();
+    }
+
+    private void hideDirectionButtons(){
+        mRandomButton.setVisibility(View.INVISIBLE);
+        mNorthButton.setVisibility(View.INVISIBLE);
+        mNorthEastButton.setVisibility(View.INVISIBLE);
+        mEastButton.setVisibility(View.INVISIBLE);
+        mSouthEastButton.setVisibility(View.INVISIBLE);
+        mSouthButton.setVisibility(View.INVISIBLE);
+        mSouthWestButton.setVisibility(View.INVISIBLE);
+        mWestButton.setVisibility(View.INVISIBLE);
+        mNorthWestButton.setVisibility(View.INVISIBLE);
+    }
+
+    @OnClick (R.id.doNotPressButton)
+    protected void doNotPressButton(){
+        AlertDialog.Builder dialog = new AlertDialog.Builder(MainActivity.this);
+        if (mSearchTermEditText.getText().toString().equals("")){
+            dialog.setTitle("Incorrect Search Term");
+            dialog.setMessage("Sorry, the button says do NOT press.  Did you not see that?" +
+                    "  Besides, you don't even have anything in the search box");
+            dialog.setCancelable(true);
+        }else if (!mSearchTermEditText.getText().toString().equals("Klutch") && mEggIncrement == 0){
+            mEggIncrement++;
+            dialog.setTitle("Incorrect Search Term");
+            dialog.setMessage("Did you really just press the button?");
+            dialog.setCancelable(true);
+        }else if (!mSearchTermEditText.getText().toString().equals("Klutch") && mEggIncrement == 1){
+            mEggIncrement++;
+            dialog.setTitle("Incorrect Search Term");
+            dialog.setMessage("Why do you insist on defying my very simple command? And you\'re " +
+                    "still not correct on the search term.");
+            dialog.setCancelable(true);
+        }else if (!mSearchTermEditText.getText().toString().equals("Klutch") && mEggIncrement == 2){
+            mEggIncrement++;
+            dialog.setTitle("Incorrect Search Term");
+            dialog.setMessage("You are rather persistent, aren\'t you.");
+            dialog.setCancelable(true);
+        }else if (!mSearchTermEditText.getText().toString().equals("Klutch") && mEggIncrement == 3) {
+            mEggIncrement++;
+            dialog.setTitle("Incorrect Search Term");
+            dialog.setMessage("I have the strangest feeling, like this has happened before." +
+                    "  Do you believe in Deja Vu?");
+            dialog.setCancelable(true);
+        }else if (!mSearchTermEditText.getText().toString().equals("Klutch") && mEggIncrement == 4) {
+            mEggIncrement++;
+            dialog.setTitle("Incorrect Search Term");
+            dialog.setMessage("I have the strangest feeling, like this has happened before." +
+                    "  Do you believe in Deja Vu?");
+            dialog.setCancelable(true);
+        }else if (!mSearchTermEditText.getText().toString().equals("Klutch") && mEggIncrement > 4
+                && mEggIncrement <= 5) {
+            mEggIncrement++;
+            dialog.setTitle("Incorrect Search Term");
+            dialog.setMessage("This is getting rather boring.  Your term is still not correct.  Perhaps" +
+                    " if you tapped the ad, something will happen. . . ");
+            dialog.setCancelable(true);
+        }else if (!mSearchTermEditText.getText().toString().equals("Klutch") && mEggIncrement == 6) {
+            mEggIncrement++;
+            dialog.setTitle("Incorrect Search Term");
+            dialog.setMessage("Ok, so the ad did nothing.  Well, I\'m out of ideas. . . ");
+            dialog.setCancelable(true);
+        }else if (!mSearchTermEditText.getText().toString().equals("Klutch") && mEggIncrement >= 7
+                && mEggIncrement <= 10) {
+            mEggIncrement++;
+            dialog.setTitle("Incorrect Search Term");
+            dialog.setMessage("Sheesh! Like I said - I\'m out of ideas!");
+            dialog.setCancelable(true);
+        }else if (!mSearchTermEditText.getText().toString().equals("Klutch") && mEggIncrement >= 11
+                && mEggIncrement <= 15) {
+            mEggIncrement++;
+            dialog.setTitle("Incorrect Search Term");
+            dialog.setMessage("Are you really still at this?");
+            dialog.setCancelable(true);
+        }else if (!mSearchTermEditText.getText().toString().equals("Klutch") && mEggIncrement >= 16
+                && mEggIncrement <= 20) {
+            mEggIncrement++;
+            dialog.setTitle("Incorrect Search Term");
+            dialog.setMessage("Isn't your finger getting sore from all this tapping?");
+            dialog.setCancelable(true);
+        }else if (!mSearchTermEditText.getText().toString().equals("Klutch") && mEggIncrement >= 21
+                && mEggIncrement <= 35) {
+            mEggIncrement++;
+            dialog.setTitle("Incorrect Search Term");
+            dialog.setMessage("tap tap tap tap tap tap tap tap tap tap TAP TAP TAP TAP TAP TAAAAPPPPPPP!");
+            dialog.setCancelable(true);
+        }else if (!mSearchTermEditText.getText().toString().equals("Klutch") && mEggIncrement >= 36) {
+            mEggIncrement++;
+            dialog.setTitle("Incorrect Search Term");
+            dialog.setMessage("OK, OK!!! You win!!!!! the correct search term is \"Klutch\"!!!  Now " +
+                    "PLEASE stop pressing the button!!!  Well, one more time wouldn\'t hurt since" +
+                    " you know the correct search term.");
+            dialog.setCancelable(true);
+        }else if (mSearchTermEditText.getText().toString().equals("Klutch")) {
+            mEggIncrement++;
+            dialog.setTitle("Correct Search Term!");
+            dialog.setMessage("You did it!! Congratulations!! I hope you didn't have to tap that" +
+                    " stupid button too many times.");
+            dialog.setCancelable(false);
+            dialog.setPositiveButton("Show me what I won!!!", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    Intent intent = new Intent(MainActivity.this, EasterEggActivity.class);
+                    startActivity(intent);
+                }
+            });
+        }
+
+        dialog.show();
     }
 
     @Override
@@ -303,56 +492,6 @@ public class MainActivity extends ActionBarActivity implements
 
     }
 
-//    public String getDirectionUrl (double latitude, double longitude, String direction) {
-//
-//        double newLat = latitude;
-//        double newLng = longitude;
-//        String directionURL;
-//        switch (direction) {
-//            case "N":
-//                newLat = latitude + mDesiredDistance;
-//                newLng = longitude;
-//                break;
-//            case "NE":
-//                newLat = latitude + (mDesiredDistance * .8);
-//                newLng = longitude + (mDesiredDistance * .8);
-//                break;
-//            case "NW":
-//                newLat = latitude + (mDesiredDistance * .8);
-//                newLng = longitude - (mDesiredDistance * .8);
-//                break;
-//            case "S":
-//                newLat = latitude - mDesiredDistance;
-//                newLng = longitude;
-//                break;
-//            case "SE":
-//                newLat = latitude - (mDesiredDistance * .8);
-//                newLng = longitude + (mDesiredDistance * .8);
-//                break;
-//            case "SW":
-//                newLat = latitude - (mDesiredDistance * .8);
-//                newLng = longitude - (mDesiredDistance * .8);
-//                break;
-//            case "E":
-//                newLat = latitude;
-//                newLng = longitude + mDesiredDistance;
-//                break;
-//            case "W":
-//                newLat = latitude;
-//                newLng = longitude - mDesiredDistance;
-//                break;
-//        }
-//        DecimalFormat decimalFormat = new DecimalFormat();
-//        decimalFormat.setMaximumFractionDigits(8);
-//        decimalFormat.format(newLat);
-//        decimalFormat.format(newLng);
-//
-//        directionURL = "http://api.geonames.org/findNearbyPlaceNameJSON?lat=" + newLat +
-//                "&lng=" + newLng + "&username=yukidev&style=MEDIUM&cities=cities1000&radius=100";
-//
-//        return directionURL;
-//    }
-
     public double milesToLatLng (int miles) {
         DecimalFormat decimalFormat = new DecimalFormat();
         double latLng;
@@ -375,37 +514,43 @@ public class MainActivity extends ActionBarActivity implements
         return isAvailable;
     }
 
-//    private GeoNameData parsePlaceDetails (String jsonData) throws JSONException{
-//        GeoNameData geoNameData = new GeoNameData();
-//
-//        geoNameData.setCities(getCities(jsonData));
-//
-//        return geoNameData;
-//    }
-//
-//    private Cities[] getCities(String jsonData) throws JSONException {
-//        JSONObject cities = new JSONObject(jsonData);
-//        JSONArray data = cities.getJSONArray("geonames");
-//
-//        Cities[] city = new Cities[data.length()];
-//        for (int i = 0; i < data.length(); i++) {
-//            JSONObject jsonCity = data.getJSONObject(i);
-//            Cities cityInfo = new Cities();
-//
-//            cityInfo.setName(jsonCity.getString("name"));
-//            cityInfo.setLat(jsonCity.getDouble("lat"));
-//            cityInfo.setLng(jsonCity.getDouble("lng"));
-//            cityInfo.setDistance(jsonCity.getDouble("distance"));
-//
-//            city[i] = cityInfo;
-//        }
-//
-//        return city;
-//    }
+    private String randomDirection() {
+        String desiredDirection = "S";
+        Random random = new Random(8);
+        int i = random.nextInt();
+        switch (i){
+            case 0:
+                desiredDirection = "N";
+                break;
+            case 1:
+                desiredDirection = "NE";
+                break;
+            case 2:
+                desiredDirection = "E";
+                break;
+            case 3:
+                desiredDirection = "SE";
+                break;
+            case 4:
+                desiredDirection = "S";
+                break;
+            case 5:
+                desiredDirection = "SW";
+                break;
+            case 6:
+                desiredDirection = "W";
+                break;
+            case 7:
+                desiredDirection = "NW";
+                break;
+        }
+        return desiredDirection;
+    }
 
-    private void yelpOnlyPoints (double latitude, double longitude, String direction) {
+
+
+    private void getYelpLatLng(double latitude, double longitude, String direction) {
         DecimalFormat decimalFormat = new DecimalFormat();
-//        double[] yelpLatLng = new double[2];
         double newLat = latitude;
         double newLng = longitude;
 
@@ -450,19 +595,10 @@ public class MainActivity extends ActionBarActivity implements
         mYelpLat = newLat;
         mYelpLng = newLng;
 
-//        yelpLatLng[0] = newLat;
-//        yelpLatLng[1] = newLng;
-//
-//        return yelpLatLng;
     }
 
     private void yelpIt (final double latitude, final double longitude) {
-        final String searchTerm;
-        if (mSearchTermEditText.getText().toString().equals("")){
-            searchTerm = "restaurants";
-        } else {
-            searchTerm = mSearchTermEditText.getText().toString();
-        }
+        final String searchTerm = mSearchTerm;
 
         Thread yelp = new Thread(new Runnable() {
             @Override

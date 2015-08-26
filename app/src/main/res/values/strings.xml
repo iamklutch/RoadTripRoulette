@@ -3,32 +3,19 @@
     <string name="title_activity_navigation">Map</string>
     <string name="title_activity_main">Road Trip Roulette</string>
 
-    <string name="action_settings">Settings</string>
+    <string name="action_settings">Options</string>
 
     <string name="network_unavailable">Network Unavailable</string>
-    <string name="title_activity_result">ResultActivity</string>
 
-    <string name="direction_spinner_prompt">Direction</string>
-    <array name="direction_spinner_items">
-        <item>Random</item>
-        <item>N</item>
-        <item>NE</item>
-        <item>E</item>
-        <item>SE</item>
-        <item>S</item>
-        <item>SW</item>
-        <item>W</item>
-        <item>NW</item>
-    </array>
+    <string name="title_activity_result">You Win!</string>
 
-    <array name="category_spinner_items">
-        <item>Random</item>
-        <item>Restaurants</item>
-        <item>Nightlife</item>
-        <item>Bars</item>
-        <item>Laser Tag</item>
-        <item>Hiking</item>
-        <item>Mountain Biking</item>
-        <item>Parks</item>
-    </array>
+    <string name="banner_ad_unit_front_page">ca-app-pub-7998491028752978/3830578241</string>
+    <string name="banner_ad_unit_result_page">ca-app-pub-7998491028752978/6784044649</string>
+
+    <string name="distance_edit_text_label">How far?</string>
+    <string name="search_term_hint_text">What? i.e. tacos, bars, nightlife, whatever</string>
+    <string name="title_activity_easter_egg">EasterEggActivity</string>
+
+    <string name="you_win_text">You Win!</string>
+
 </resources>
