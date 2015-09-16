@@ -5,12 +5,13 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.Typeface;
+import android.content.SharedPreferences;
 import android.graphics.drawable.AnimationDrawable;
 import android.location.Location;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.*;
+import android.preference.PreferenceManager;
 import android.text.InputType;
 import android.util.Log;
 import android.view.Menu;
@@ -53,6 +54,7 @@ public class MainActivity extends Activity implements
     private String mDesiredDirection;
     private AnimationDrawable mFrameAnimation;
     private int mEggIncrement;
+    private int mDefaultMaxDistance;
 
     Context mContext;
 
@@ -74,6 +76,7 @@ public class MainActivity extends Activity implements
     @Bind (R.id.westButton)ImageView mWestButton;
     @Bind (R.id.northWestButton)ImageView mNorthWestButton;
     @Bind (R.id.doNotPressButton)ImageView mDoNotPressButton;
+    @Bind (R.id.settingsButton)ImageButton mSettingsButton;
 
 
     @Override
@@ -81,6 +84,25 @@ public class MainActivity extends Activity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
+        PreferenceManager.setDefaultValues(this, R.xml.advanced_preferences, false);
+
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences.OnSharedPreferenceChangeListener listener =
+                new SharedPreferences.OnSharedPreferenceChangeListener() {
+                    @Override
+                    public void onSharedPreferenceChanged
+                            (SharedPreferences sharedPreferences, String key) {
+                        mDefaultMaxDistance = Integer
+                                .parseInt(sharedPreferences
+                                        .getString(SettingsActivity.KEY_DIST, "125"));
+                    }
+                };
+        mDefaultMaxDistance = Integer
+                .parseInt(preferences.getString(SettingsActivity.KEY_DIST, "125"));
+        //this is after the listener to empty garbage collection in sharedPrefs
+        preferences.registerOnSharedPreferenceChangeListener(listener);
+
+
         mEggIncrement = 0;
 
         Intent intent = getIntent();
@@ -101,9 +123,6 @@ public class MainActivity extends Activity implements
         mDesiredDirection = randomDirection();
         // in case they didn't choose a distance. . .
         randomDistance();
-
-//        Typeface typeface = Typeface.createFromAsset(getAssets(), "fonts/destroy_font.ttf");
-//        mSearchTermEditText.setTypeface(typeface);
 
         //Make the ads
         AdView mAdView = (AdView) findViewById(R.id.adViewFront);
@@ -186,6 +205,12 @@ public class MainActivity extends Activity implements
         }
     }
 
+    @OnClick (R.id.settingsButton)
+    protected void goToSettings(){
+        Intent intent = new Intent(this, SettingsActivity.class);
+        startActivity(intent);
+    }
+
     @OnClick (R.id.distanceImageButton)
     protected void getDesiredDistance(){
         final AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -202,10 +227,12 @@ public class MainActivity extends Activity implements
             public void onClick(DialogInterface dialog, int which) {
                 if (distanceVariable.equals("")) {
                     randomDistance();
+
                 }
                 // put what they chose as distance
                 int dist = Integer.parseInt(distanceVariable.getText().toString());
                 mDesiredDistance = milesToLatLng(dist);
+                Toast.makeText(MainActivity.this, "Distance set: " + dist + " miles.", Toast.LENGTH_SHORT).show();
             }
         });
         builder.setNeutralButton("Random", new DialogInterface.OnClickListener() {
@@ -216,12 +243,14 @@ public class MainActivity extends Activity implements
         });
         builder.create().show();
 
+
     }
 
     private void randomDistance(){
         Random distRandom = new Random();
-        int dist = (distRandom.nextInt(120) + 5);
+        int dist = distRandom.nextInt(mDefaultMaxDistance);
         mDesiredDistance = milesToLatLng(dist);
+        Toast.makeText(this, "Distance: RANDOM up to " + mDefaultMaxDistance, Toast.LENGTH_SHORT).show();
     }
 
     @OnClick (R.id.directionImageButton)
@@ -449,6 +478,9 @@ public class MainActivity extends Activity implements
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            Intent intent = new Intent(this, SettingsActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            startActivity(intent);
             return true;
         }
 
@@ -600,19 +632,24 @@ public class MainActivity extends Activity implements
     private void yelpIt (final double latitude, final double longitude) {
         final String searchTerm = mSearchTerm;
 
-        Thread yelp = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                String[] args = new String[4];
-                args[0] = "--term";
-                args[1] = "" + searchTerm;
-                args[2] = "--ll";
-                args[3] = latitude + " , " + longitude;
+        try {
+            Thread yelp = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    String[] args = new String[4];
+                    args[0] = "--term";
+                    args[1] = "" + searchTerm;
+                    args[2] = "--ll";
+                    args[3] = latitude + " , " + longitude;
 
-                YelpAPI.main(args, mContext);
-            }
-        });
-        yelp.start();
+                    YelpAPI.main(args, mContext);
+                }
+            });
+            yelp.setContextClassLoader(getClass().getClassLoader());
+            yelp.start();
+        } catch (Exception el) {
+            Log.e("YelpIt :" + el.getMessage(), "");
+        }
     }
 
 }

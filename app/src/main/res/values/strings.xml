@@ -17,5 +17,66 @@
     <string name="title_activity_easter_egg">EasterEggActivity</string>
 
     <string name="you_win_text">You Win!</string>
+    <string name="title_activity_settings">SettingsActivity</string>
+
+    <string name="pref_default_max_dist">125</string>
+    <string name="pref_checkbox_summary">This changes the maximum distance the random feature can choose from</string>
+    <string name="pref_list_title">Set Maximum Distance</string>
+    <string name="pref_list_dialog_title">Choose Max Distance:</string>
+    <string-array name="pref_user_max_dist">
+        <item>5 Miles</item>
+        <item>10 Miles</item>
+        <item>15 Miles</item>
+        <item>20 Miles</item>
+        <item>25 Miles</item>
+        <item>30 Miles</item>
+        <item>35 Miles</item>
+        <item>40 Miles</item>
+        <item>45 Miles</item>
+        <item>50 Miles</item>
+        <item>60 Miles</item>
+        <item>70 Miles</item>
+        <item>80 Miles</item>
+        <item>90 Miles</item>
+        <item>100 Miles</item>
+        <item>125 Miles</item>
+        <item>150 Miles</item>
+        <item>175 Miles</item>
+        <item>200 Miles</item>
+        <item>250 Miles</item>
+        <item>300 Miles</item>
+        <item>350 Miles</item>
+        <item>400 Miles</item>
+        <item>450 Miles</item>
+        <item>500 Miles</item>
+    </string-array>
+
+    <string-array name="pref_user_max_dist_values">
+        <item>5</item>
+        <item>10</item>
+        <item>15</item>
+        <item>20</item>
+        <item>25</item>
+        <item>30</item>
+        <item>35</item>
+        <item>40</item>
+        <item>45</item>
+        <item>50</item>
+        <item>60</item>
+        <item>70</item>
+        <item>80</item>
+        <item>90</item>
+        <item>100</item>
+        <item>125</item>
+        <item>150</item>
+        <item>175</item>
+        <item>200</item>
+        <item>250</item>
+        <item>300</item>
+        <item>350</item>
+        <item>400</item>
+        <item>450</item>
+        <item>500</item>
+    </string-array>
 
 </resources>

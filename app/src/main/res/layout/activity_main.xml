@@ -34,15 +34,6 @@
         android:layout_below="@id/searchTermEditText"
         android:orientation="horizontal">
 
-        <!--<EditText-->
-            <!--android:layout_width="match_parent"-->
-            <!--android:layout_height="wrap_content"-->
-            <!--android:id="@+id/distanceEditText"-->
-            <!--android:layout_weight="1"-->
-            <!--android:textSize="20sp"-->
-            <!--android:inputType="number"-->
-            <!--android:hint="@string/distance_edit_text_label"/>-->
-
         <ImageButton
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -186,5 +177,14 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"/>
+
+    <ImageButton
+        android:layout_width="65dp"
+        android:layout_height="65dp"
+        android:id="@+id/settingsButton"
+        android:src="@drawable/ic_action_settings"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:background="@android:color/transparent"/>
 
 </RelativeLayout>
