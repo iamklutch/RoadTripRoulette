@@ -86,23 +86,6 @@ public class MainActivity extends Activity implements
         ButterKnife.bind(this);
         PreferenceManager.setDefaultValues(this, R.xml.advanced_preferences, false);
 
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        SharedPreferences.OnSharedPreferenceChangeListener listener =
-                new SharedPreferences.OnSharedPreferenceChangeListener() {
-                    @Override
-                    public void onSharedPreferenceChanged
-                            (SharedPreferences sharedPreferences, String key) {
-                        mDefaultMaxDistance = Integer
-                                .parseInt(sharedPreferences
-                                        .getString(SettingsActivity.KEY_DIST, "125"));
-                    }
-                };
-        mDefaultMaxDistance = Integer
-                .parseInt(preferences.getString(SettingsActivity.KEY_DIST, "125"));
-        //this is after the listener to empty garbage collection in sharedPrefs
-        preferences.registerOnSharedPreferenceChangeListener(listener);
-
-
         mEggIncrement = 0;
 
         Intent intent = getIntent();
@@ -119,10 +102,6 @@ public class MainActivity extends Activity implements
         }
 
         mContext = this;
-        // in case they don't choose direction . . .
-        mDesiredDirection = randomDirection();
-        // in case they didn't choose a distance. . .
-        randomDistance();
 
         //Make the ads
         AdView mAdView = (AdView) findViewById(R.id.adViewFront);
@@ -441,6 +420,16 @@ public class MainActivity extends Activity implements
     @Override
     protected void onResume(){
         super.onResume();
+
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        mDefaultMaxDistance = Integer
+                .parseInt(preferences.getString(SettingsActivity.KEY_DIST, "125"));
+
+        // in case they don't choose direction . . .
+        mDesiredDirection = randomDirection();
+        // in case they didn't choose a distance. . .
+        randomDistance();
+
         mGoogleApiClient.connect();
         try {
             if (mFrameAnimation.isRunning()) {
@@ -479,7 +468,6 @@ public class MainActivity extends Activity implements
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             Intent intent = new Intent(this, SettingsActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
             startActivity(intent);
             return true;
         }

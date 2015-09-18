@@ -40,13 +40,6 @@ public class SettingsActivity extends PreferenceActivity
 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-        if (key.equals(KEY_DIST)) {
-//            Preference preference = findPreference(key);
-//            preference.setSummary(sharedPreferences.getString(key, ""));
-//            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-//            MainActivity activity = new MainActivity();
-//            activity.setDefaultMaxDistance
-//                    (Integer.parseInt(preferences.getString(KEY_DIST, "125")));
-        }
+
     }
 }

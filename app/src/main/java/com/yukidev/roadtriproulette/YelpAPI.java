@@ -176,7 +176,7 @@ public class YelpAPI{
                     @Override
                     public void run() {
                         final Intent errorIntent = new Intent(context, MainActivity.class);
-                        errorIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                        errorIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP );
                         errorIntent.putExtra("error", "noBusiness");
                         context.startActivity(errorIntent);
 
@@ -196,7 +196,7 @@ public class YelpAPI{
                     @Override
                     public void run() {
                         final Intent errorIntent = new Intent(context, MainActivity.class);
-                        errorIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                        errorIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP );
                         errorIntent.putExtra("error", "noYelp");
                         context.startActivity(errorIntent);
 
@@ -242,7 +242,7 @@ public class YelpAPI{
             intent.putExtra("rating", rating);
             intent.putExtra("ratingUrl", ratingUrl);
             intent.putExtra("yelpUrl", yelpBusinessUrl);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             context.startActivity(intent);
         }
     }
