@@ -160,8 +160,9 @@ public class MainActivity extends Activity implements
 
     private void randomSearch(){
 
-        // this sets the default search categories for the randomCategory
+
         mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        // this sets the default search categories for the randomCategory
         // the string[] is to set the default on first load for the Set<String> categories
         String[] catArray = getResources().getStringArray(R.array.pref_default_selected_category);
         Set<String> defaultCatSet = new HashSet<>(Arrays.asList(catArray));

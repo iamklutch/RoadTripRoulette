@@ -7,4 +7,10 @@
     <ListPreference
         android:defaultValue="@string/pref_default_max_dist"/>
 
+    <MultiSelectListPreference
+        android:defaultValue="@array/pref_default_selected_category"/>
+
+    <CheckBoxPreference
+        android:defaultValue="false"/>
+
 </PreferenceScreen>

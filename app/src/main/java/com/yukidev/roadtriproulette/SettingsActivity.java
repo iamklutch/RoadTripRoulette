@@ -13,6 +13,7 @@ public class SettingsActivity extends PreferenceActivity
 
     public static final String KEY_DIST = "pref_max_dist";
     public static final String KEY_CATEGORIES = "pref_categories";
+    public static final String KEY_MASK_DATA = "pref_data_masked";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

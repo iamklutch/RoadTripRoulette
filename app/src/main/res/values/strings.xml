@@ -82,6 +82,8 @@
 
     <string name="pref_category_list_title">Set Categories</string>
     <string name="pref_category_list_title_summary">Choose Random Selectable Categories:</string>
+    <string name="pref_mask_data_title">Hide Business/City Name?</string>
+    <string name="pref_mask_data_summary">This masks the business/city name in the result. You can view by tapping it</string>
 
     <array name="pref_user_selected_categories">
         <item>Food (all)</item>

@@ -1,8 +1,11 @@
 package com.yukidev.roadtriproulette;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.Typeface;
 import android.net.Uri;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Menu;
@@ -38,6 +41,7 @@ public class ResultActivity extends AppCompatActivity implements View.OnTouchLis
     private String mRatingUrl;
     private String mCity;
     private String mYelpUrl;
+    private SharedPreferences mPreferences;
 
 
     @Override
@@ -45,6 +49,7 @@ public class ResultActivity extends AppCompatActivity implements View.OnTouchLis
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_result);
         ButterKnife.bind(this);
+        PreferenceManager.setDefaultValues(this, R.xml.advanced_preferences, false);
 
         //Make the ads
         AdView mAdView = (AdView) findViewById(R.id.adViewResult);
@@ -90,10 +95,15 @@ public class ResultActivity extends AppCompatActivity implements View.OnTouchLis
             mStarsImageView.setImageResource(R.drawable.fivestars);
         }
 
-        mBusinessName.setOnTouchListener(this);
-        mCityTextView.setOnTouchListener(this);
-
-
+        mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        Boolean maskData = mPreferences.getBoolean(SettingsActivity.KEY_MASK_DATA, false);
+        if (maskData) {
+            mBusinessName.setOnTouchListener(this);
+            mCityTextView.setOnTouchListener(this);
+        } else {
+            mBusinessName.setText(mName);
+            mCityTextView.setText(mCity);
+        }
 
             Picasso.with (this)
                     .load(mImageUrl)

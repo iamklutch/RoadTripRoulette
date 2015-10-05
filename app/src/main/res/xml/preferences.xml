@@ -25,5 +25,11 @@
         android:entryValues="@array/pref_user_selected_categories_values"
         android:defaultValue="@array/pref_default_selected_category"/>
 
+    <CheckBoxPreference
+        android:key="pref_data_masked"
+        android:title="@string/pref_mask_data_title"
+        android:summary="@string/pref_mask_data_summary"
+        android:defaultValue="false"/>
+
 
 </PreferenceScreen>
