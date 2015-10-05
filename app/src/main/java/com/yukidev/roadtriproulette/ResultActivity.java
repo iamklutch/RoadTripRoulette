@@ -130,7 +130,24 @@ public class ResultActivity extends AppCompatActivity implements View.OnTouchLis
     public void gotoYelpBusinessPage(){
         Intent yelpIntent = new Intent(Intent.ACTION_VIEW);
         yelpIntent.setData(Uri.parse(mYelpUrl));
-        startActivity(yelpIntent);
+        // Checks for the yelp app, if not, then browser
+        if (isYelpAppAvailable()){
+            yelpIntent.setPackage("com.yelp.android");
+        }
+        if (yelpIntent.resolveActivity(getPackageManager()) != null) {
+            startActivity(yelpIntent);
+        }
+
+    }
+
+    public Boolean isYelpAppAvailable(){
+        PackageManager pm = this.getPackageManager();
+        try {
+            pm.getPackageInfo("com.yelp.android", PackageManager.GET_ACTIVITIES);
+            return true;
+        } catch (PackageManager.NameNotFoundException e) {
+            return false;
+        }
     }
 
     @Override
