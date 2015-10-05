@@ -16,4 +16,14 @@
         android:entryValues="@array/pref_user_max_dist_values"
         android:defaultValue="@string/pref_default_max_dist"/>
 
+    <MultiSelectListPreference
+        android:key="pref_categories"
+        android:title="@string/pref_category_list_title"
+        android:summary="@string/pref_category_list_title_summary"
+        android:dialogTitle="Custom Selected Categories"
+        android:entries="@array/pref_user_selected_categories"
+        android:entryValues="@array/pref_user_selected_categories_values"
+        android:defaultValue="@array/pref_default_selected_category"/>
+
+
 </PreferenceScreen>

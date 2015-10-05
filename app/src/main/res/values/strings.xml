@@ -13,7 +13,7 @@
     <string name="banner_ad_unit_result_page">ca-app-pub-7998491028752978/6784044649</string>
 
     <string name="distance_edit_text_label">How far?</string>
-    <string name="search_term_hint_text">What? i.e. tacos, bars, nightlife, whatever</string>
+    <string name="search_term_hint_text">What? i.e. tacos, bars, nightlife, whatever.  Leave blank for random</string>
     <string name="title_activity_easter_egg">EasterEggActivity</string>
 
     <string name="you_win_text">You Win!</string>
@@ -23,6 +23,7 @@
     <string name="pref_checkbox_summary">This changes the maximum distance the random feature can choose from</string>
     <string name="pref_list_title">Set Maximum Distance</string>
     <string name="pref_list_dialog_title">Choose Max Distance:</string>
+
     <string-array name="pref_user_max_dist">
         <item>5 Miles</item>
         <item>10 Miles</item>
@@ -78,5 +79,71 @@
         <item>450</item>
         <item>500</item>
     </string-array>
+
+    <string name="pref_category_list_title">Set Categories</string>
+    <string name="pref_category_list_title_summary">Choose Random Selectable Categories:</string>
+
+    <array name="pref_user_selected_categories">
+        <item>Food (all)</item>
+        <item>Breakfast</item>
+        <item>Lunch</item>
+        <item>Dinner</item>
+        <item>Local Flavor</item>
+        <item>Bars (all)</item>
+        <item>Cocktails</item>
+        <item>Piano Bars</item>
+        <item>Rooftop Bars</item>
+        <item>Dive Bars</item>
+        <item>College Bars</item>
+        <item>Sports Bars</item>
+        <item>Lounges</item>
+        <item>Nightclub</item>
+        <item>Movie Theaters</item>
+        <item>Amusement Parks</item>
+        <item>Museums</item>
+        <item>Shopping</item>
+    </array>
+
+    <array name="pref_user_selected_categories_values">
+        <item>Food</item>
+        <item>Breakfast</item>
+        <item>Lunch</item>
+        <item>Dinner</item>
+        <item>Local Flavor</item>
+        <item>Bars</item>
+        <item>Cocktails</item>
+        <item>Piano Bars</item>
+        <item>Rooftop Bars</item>
+        <item>Dive Bars</item>
+        <item>College Bars</item>
+        <item>Sports Bars</item>
+        <item>Lounges</item>
+        <item>Nightclub</item>
+        <item>Movie Theaters</item>
+        <item>Amusement Parks</item>
+        <item>Museums</item>
+        <item>Shopping</item>
+    </array>
+
+    <array name="pref_default_selected_category">
+        <item>Food</item>
+        <item>Breakfast</item>
+        <item>Lunch</item>
+        <item>Dinner</item>
+        <item>Local Flavor</item>
+        <item>Bars</item>
+        <item>Cocktails</item>
+        <item>Piano Bars</item>
+        <item>Rooftop Bars</item>
+        <item>Dive Bars</item>
+        <item>College Bars</item>
+        <item>Sports Bars</item>
+        <item>Lounges</item>
+        <item>Nightclub</item>
+        <item>Movie Theaters</item>
+        <item>Amusement Parks</item>
+        <item>Museums</item>
+        <item>Shopping</item>
+    </array>
 
 </resources>

@@ -32,7 +32,10 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 
 import java.text.DecimalFormat;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Random;
+import java.util.Set;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -55,6 +58,8 @@ public class MainActivity extends Activity implements
     private AnimationDrawable mFrameAnimation;
     private int mEggIncrement;
     private int mDefaultMaxDistance;
+    private String[] mDefaultSearchCategories;
+    private SharedPreferences mPreferences;
 
     Context mContext;
 
@@ -154,34 +159,20 @@ public class MainActivity extends Activity implements
     }
 
     private void randomSearch(){
+
+        // this sets the default search categories for the randomCategory
+        mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        // the string[] is to set the default on first load for the Set<String> categories
+        String[] catArray = getResources().getStringArray(R.array.pref_default_selected_category);
+        Set<String> defaultCatSet = new HashSet<>(Arrays.asList(catArray));
+        Set<String> categories = mPreferences.getStringSet(SettingsActivity.KEY_CATEGORIES, defaultCatSet);
+        mDefaultSearchCategories = new String[categories.size()];
+        mDefaultSearchCategories = categories.toArray(new String[] {});
+
         Random random = new Random();
-        int id = random.nextInt(7);
-        switch (id){
-            default:
-                mSearchTerm = "food";
-                break;
-            case 0:
-                mSearchTerm = "dinner";
-                break;
-            case 1:
-                mSearchTerm = "bars";
-                break;
-            case 2:
-                mSearchTerm = "nightlife";
-                break;
-            case 3:
-                mSearchTerm = "amusement";
-                break;
-            case 4:
-                mSearchTerm = "local flavor";
-                break;
-            case 5:
-                mSearchTerm = "movies";
-                break;
-            case 6:
-                mSearchTerm = "breakfast";
-                break;
-        }
+        int i = random.nextInt(mDefaultSearchCategories.length);
+        mSearchTerm = mDefaultSearchCategories[i];
+
     }
 
     @OnClick (R.id.settingsButton)
@@ -421,9 +412,21 @@ public class MainActivity extends Activity implements
     protected void onResume(){
         super.onResume();
 
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        // this sets the maximum distance selectable by the randomDistance method
+        mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         mDefaultMaxDistance = Integer
-                .parseInt(preferences.getString(SettingsActivity.KEY_DIST, "125"));
+                .parseInt(mPreferences.getString(SettingsActivity.KEY_DIST, "125"));
+        // this sets the default search categories for the randomCategory
+        try {
+            String[] catArray = getResources().getStringArray(R.array.pref_default_selected_category);
+            Set<String> defaultCatSet = new HashSet<>(Arrays.asList(catArray));
+            Set<String> categories = mPreferences.getStringSet(SettingsActivity.KEY_CATEGORIES, defaultCatSet);
+            mDefaultSearchCategories = new String[categories.size()];
+            mDefaultSearchCategories = categories.toArray(new String[] {});
+        } catch (NullPointerException e){
+
+        }
+
 
         // in case they don't choose direction . . .
         mDesiredDirection = randomDirection();

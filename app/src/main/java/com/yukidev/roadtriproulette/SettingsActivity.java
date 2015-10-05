@@ -12,6 +12,7 @@ public class SettingsActivity extends PreferenceActivity
         implements SharedPreferences.OnSharedPreferenceChangeListener{
 
     public static final String KEY_DIST = "pref_max_dist";
+    public static final String KEY_CATEGORIES = "pref_categories";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
